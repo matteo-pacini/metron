@@ -54,7 +54,7 @@ def enter_date(page: Page, field: Locator, day: str, typed: bool = True) -> None
 
 
 def open_person_form(home: Home, page: Page) -> None:
-    page.goto(home.url + "/config/integrations/integration/metron")
+    home.open_settings(page)
     page.get_by_role("button", name="Add person").click()
     expect(page.get_by_role("spinbutton", name="Height*")).to_be_visible(timeout=TIMEOUT)
 

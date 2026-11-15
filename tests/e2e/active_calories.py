@@ -321,7 +321,7 @@ def step(s: Screen, diary: Locator, direction: str) -> None:
 
 def change_details(s: Screen, name: str) -> Locator:
     """Open `name`'s Change person, then Change details; return the dialog."""
-    s.page.goto(s.home.url + "/config/integrations/integration/metron")
+    s.home.open_settings(s.page)
     row = s.page.locator("ha-config-sub-entry-row", has_text=name)
     s.tap(row.get_by_role("button", name="Change person"))
     dialog = s.page.locator("dialog-data-entry-flow")

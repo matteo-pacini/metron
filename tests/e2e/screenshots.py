@@ -281,7 +281,7 @@ def shoot_editor(home: Home, browser: Browser, name: str) -> None:
 def shoot_person_form(home: Home, browser: Browser, name: str) -> None:
     """The Active calories section of Debora's Change details, with her watch chosen."""
     page = signed_in(home, browser, width=1280, height=1400)
-    page.goto(home.url + "/config/integrations/integration/metron")
+    home.open_settings(page)
     row = page.locator("ha-config-sub-entry-row", has_text="Debora")
     row.get_by_role("button", name="Change person").click()
     dialog = page.locator("dialog-data-entry-flow")

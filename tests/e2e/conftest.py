@@ -36,7 +36,7 @@ from typing import Any
 
 import aiohttp
 import pytest
-from playwright.sync_api import Browser, Page, sync_playwright
+from playwright.sync_api import Browser, Page, expect, sync_playwright
 
 from custom_components.metron.const import CARDS_URL, DB_FILE
 from custom_components.metron.db import sqlite_url
@@ -164,6 +164,23 @@ class Home:
                 "config": {"views": [{"title": "Test", "cards": cards}]},
             }
         )
+
+    def open_settings(self, page: Page) -> None:
+        """Open Metron's page in Home Assistant's settings, with its entry listed.
+
+        The frontend can lose every entry as that page loads. It takes in its
+        first list of entries a moment after the list arrives, and a change to
+        any entry that arrives in that moment, as while Metron reloads for a
+        person just added, leaves the list empty: the page then says "No
+        entries" for as long as it stays open. Loading it again gets them back.
+        """
+        entry = page.locator("ha-config-entry-row").first
+        for _ in range(5):
+            page.goto(self.url + "/config/integrations/integration/metron")
+            expect(entry.or_(page.get_by_text("No entries")).first).to_be_visible(timeout=30_000)
+            if entry.is_visible():
+                return
+        raise AssertionError("Home Assistant's page for Metron lists no entries")
 
     def log(self) -> str:
         """Home Assistant's log so far."""

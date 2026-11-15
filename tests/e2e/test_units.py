@@ -175,7 +175,7 @@ def test_adds_and_changes_a_person_in_lb_feet_and_inches(home: Home) -> None:
 
 @pytest.mark.usefixtures("us_customary")
 def test_the_person_form_shows_lb_feet_and_inches(home: Home, page: Page) -> None:
-    page.goto(home.url + "/config/integrations/integration/metron")
+    home.open_settings(page)
     page.get_by_role("button", name="Add person").click()
     # The dialog's form is slotted into it, so look for its fields on the page.
     for field in ("Height (ft)*", "Height (in)*", "Starting weight*", "Goal weight*"):
