@@ -286,6 +286,40 @@ def test_removed_cards_stop_listening(home: Home, page: Page) -> None:
     home.ws({"type": "metron/weight/delete", "person": matteo, "day": today})
 
 
+def test_a_slow_first_reply_does_not_undo_a_newer_one(home: Home, page: Page) -> None:
+    open_home(home, page)
+    with person_named(home, "Lola e2e"):
+        lola = next(p["id"] for p in home.ws({"type": "metron/people"}) if p["name"] == "Lola e2e")
+        # The card's first reply for the day is held back, and has no soup in
+        # it: the soup is logged after Home Assistant read the day for it.
+        config = {"person": "Lola e2e"}
+        card = mount(page, "metron-food-diary-card", config, slow={"metron/day": 2000})
+        page.wait_for_function("document.getElementById('mounted')._person")
+        # What the card asks from here on is answered at once.
+        page.evaluate(
+            """() => {
+              const el = document.getElementById("mounted");
+              const base = document.querySelector("home-assistant").hass;
+              el._hass = { ...el._hass, callWS: (message) => base.callWS(message) };
+            }"""
+        )
+        home.ws(
+            {
+                "type": "metron/entry/add",
+                "person": lola,
+                "day": today(),
+                "meal": "lunch",
+                "name": "Late soup e2e",
+                "kcal": 321,
+            }
+        )
+        # The change has the card ask again, and that reply, with the soup,
+        # comes first. The held one comes after it, and must not replace it.
+        page.wait_for_timeout(3000)
+        expect(card.locator(".meal")).to_have_count(4, timeout=TIMEOUT)
+        expect(card.locator(".row", has_text="Late soup e2e")).to_be_visible(timeout=TIMEOUT)
+
+
 def test_the_summary_card_gives_its_hass_back(home: Home, page: Page) -> None:
     open_home(home, page)
     mount(page, "metron-summary-card", {"person": "Debora"})
