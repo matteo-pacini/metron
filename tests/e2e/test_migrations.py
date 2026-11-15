@@ -159,7 +159,7 @@ def test_a_failed_upgrade_leaves_the_database_as_it_was_and_a_reload_finishes_it
             assert (layout(url), contents(url)) == before
             assert version(url) == 1
 
-            old_page.goto(old_home.url + "/config/integrations/integration/metron")
+            old_home.open_settings(old_page)
             expect(old_page.get_by_text("Failed to set up").first).to_be_visible(timeout=TIMEOUT)
     finally:
         if config_entry(old_home)["disabled_by"]:
@@ -190,7 +190,7 @@ def test_refuses_a_database_a_newer_release_upgraded_and_says_why(
         assert entry["error_reason_translation_key"] == "newer_database"
         assert (layout(url), contents(url)) == before
 
-        old_page.goto(old_home.url + "/config/integrations/integration/metron")
+        old_home.open_settings(old_page)
         expect(old_page.get_by_text(f"Failed to set up: {message}")).to_be_visible(timeout=TIMEOUT)
 
         card = open_card(

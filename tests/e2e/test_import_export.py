@@ -23,7 +23,7 @@ EXPORT = "File-Export-2025-10-01-to-2025-10-04"
 
 def menu(home: Home, page: Page, person: str) -> Locator:
     """Open a person's menu, the one "Change person" shows; return its dialog."""
-    page.goto(home.url + "/config/integrations/integration/metron")
+    home.open_settings(page)
     row = page.locator("ha-config-sub-entry-row", has_text=person)
     row.get_by_role("button", name="Change person").click()
     dialog = page.locator("dialog-data-entry-flow")
