@@ -3071,7 +3071,10 @@ const rangeButtons = (ranges, selected, t) =>
 // from the card's `_fetch`, drawn with `_renderBody`. Its title is its
 // config's, else the string its static `titleKey` names. Once midnight
 // passes, it calls `_newDay`, which fetches again. Each fetch reads the
-// person again too, so the card follows a change to their details.
+// person again too, so the card follows a change to their details. Replies
+// can come out of order, as when a change has the card fetch again while an
+// earlier fetch is still out: `_asked` counts the fetches, and only the
+// latest one's reply is taken.
 const ShowsPerson = (Base) =>
   class extends Base {
     set hass(hass) {
@@ -3085,7 +3088,9 @@ const ShowsPerson = (Base) =>
       this._people = await this._call({ type: "metron/people" });
       this._person = findPerson(this._people, this._config, this._hass);
       this._fetchedOn = this._today;
-      this._data = this._person ? await this._fetch() : null;
+      const asked = (this._asked = (this._asked ?? 0) + 1);
+      const data = this._person ? await this._fetch() : null;
+      if (asked === this._asked) this._data = data;
     }
 
     _newDay() {
@@ -3094,8 +3099,10 @@ const ShowsPerson = (Base) =>
 
     async _refresh() {
       this._fetchedOn = this._today;
+      const asked = (this._asked = (this._asked ?? 0) + 1);
       try {
         const [people, data] = await Promise.all([this._call({ type: "metron/people" }), this._fetch()]);
+        if (asked !== this._asked) return;
         const person = findPerson(people, this._config, this._hass);
         // Someone else, or no one, as after a rename when the config names
         // the person: `data` is not theirs, so load afresh.

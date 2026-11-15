@@ -419,3 +419,20 @@ test("word that the people may have changed has a card with a person fetch again
   await settled();
   assert.equal(text(c._card.innerHTML), "Streak No person named Debora. Add them in Settings, Devices & services, Metron.");
 });
+
+test("an earlier fetch's reply that comes last does not replace a later one's", async () => {
+  const held = [];
+  const { c } = card({ person: "Debora", locale: "en" }, (m) => (m.type === "metron/people" ? PEOPLE : new Promise((answer) => held.push(answer))));
+  const started = c._start();
+  await settled();
+  // A change while the first fetch is out has the card fetch again.
+  c._changed({ person: "d" });
+  await settled();
+  assert.equal(held.length, 2);
+  held[1]({ days: history("uggp", c._today) });
+  await settled();
+  held[0]({ days: history("uuup", c._today) });
+  await started;
+  await settled();
+  assert.match(text(c._card.innerHTML), /^Streak Debora 400 kcal left today 2 day streak/);
+});
